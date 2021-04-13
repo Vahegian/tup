@@ -2,3 +2,4 @@
 **/*.rs.bk
 tup-controller/.pio
 tup-controller/.vscode
+tup-controller/src/private.h
