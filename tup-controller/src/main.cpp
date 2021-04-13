@@ -1,9 +1,29 @@
-#include <Arduino.h>
+/*
+ *  This sketch sends data via HTTP GET requests to data.sparkfun.com service.
+ *
+ *  You need to get streamId and privateKey at data.sparkfun.com and paste them
+ *  below. Or just customize this script to talk to other HTTP servers.
+ *
+ */
 
-void setup() {
-  // put your setup code here, to run once:
+#include <WiFi.h>
+#include "wifi/wifi.h"
+#include "private.h"
+
+void setup()
+{
+    Serial.begin(9600);
+    delay(10);
+
+    bool connected = setupWifi(ssid, password);
+    if (!connected){
+      exit(1);
+    }
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop()
+{
+
+  Serial.println(wifiGet(host, "/tup"));
+
 }
