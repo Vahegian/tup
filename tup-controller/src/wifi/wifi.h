@@ -2,7 +2,7 @@
 
 #include <WString.h>
 
-bool setupWifi(const char* ssid, const char* password);
-String wifiGet(char* host, String url);
+bool wifiSetup(const char* ssid, const char* password);
+String wifiGet(const char* host, int port ,String url);
 
 #endif

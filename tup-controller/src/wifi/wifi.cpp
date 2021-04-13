@@ -1,6 +1,6 @@
 #include <WiFi.h>
 
-bool setupWifi(const char* ssid, const char* password)
+bool wifiSetup(const char* ssid, const char* password)
 {
     Serial.println();
     Serial.print("Connecting to ");
@@ -23,11 +23,10 @@ bool setupWifi(const char* ssid, const char* password)
     return false;
 }
 
-
-String wifiGet(char* host, String url){
-    WiFiClient client;
-    const int httpPort = 5000;
-    if (!client.connect(host, httpPort)) {
+String wifiGet(const char* host, int port ,String url){
+    WiFiClient client;     
+    
+    if (!client.connect(host, port)) {
         Serial.println("connection failed");
         return "";
     }

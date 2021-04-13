@@ -2,6 +2,7 @@
 
 const char* ssid     = "ssid"; // WIFI access point
 const char* password = "password";
-char* host = "0.0.0.0"; //url to make request to 
+const char* host = "0.0.0.0"; //url to make request to 
+const int port = 80;
 
 #endif
