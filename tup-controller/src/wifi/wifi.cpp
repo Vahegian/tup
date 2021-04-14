@@ -1,6 +1,6 @@
 #include <WiFi.h>
 
-bool wifiSetup(const char* ssid, const char* password)
+bool wifiSetup(const char *ssid, const char *password)
 {
     Serial.println();
     Serial.print("Connecting to ");
@@ -8,25 +8,31 @@ bool wifiSetup(const char* ssid, const char* password)
 
     WiFi.begin(ssid, password);
 
-    for(int i=0; i<10; i++){ 
+    for (int i = 0; i < 10; i++)
+    {
         Serial.print("*");
-        if (WiFi.status() != WL_CONNECTED) {
+        if (WiFi.status() != WL_CONNECTED)
+        {
             delay(1000);
-        }else{
+        }
+        else
+        {
             Serial.println("");
             Serial.print("WiFi connected - >");
             Serial.print("IP address: ");
             Serial.println(WiFi.localIP());
-            return true;            
+            return true;
         }
     }
     return false;
 }
 
-String wifiGet(const char* host, int port ,String url){
-    WiFiClient client;     
-    
-    if (!client.connect(host, port)) {
+String wifiGet(const char *host, int port, String url)
+{
+    WiFiClient client;
+
+    if (!client.connect(host, port))
+    {
         Serial.println("connection failed");
         return "";
     }
@@ -36,8 +42,10 @@ String wifiGet(const char* host, int port ,String url){
                  "Connection: close\r\n\r\n");
 
     unsigned long timeout = millis();
-    while (client.available() == 0) {
-        if (millis() - timeout > 5000) {
+    while (client.available() == 0)
+    {
+        if (millis() - timeout > 5000)
+        {
             Serial.println(">>> Client Timeout !");
             client.stop();
             return "";
@@ -45,8 +53,9 @@ String wifiGet(const char* host, int port ,String url){
     }
 
     String line;
-    while(client.available()) {
-        line += client.readStringUntil('\r');
+    while (client.available())
+    {
+        line = client.readStringUntil('\r'); // only need last word use '+=' to store the whole message
     }
 
     return line;
