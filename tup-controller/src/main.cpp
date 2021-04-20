@@ -3,11 +3,11 @@
 #include "private.h"
 #include "reg/reg.h"
 
-// int bits [21] = {4,2,1};
-uint32_t leds18_and_rows = (0b000111111111111111111);
-uint32_t leds18_start = (0b000100000000000000000);
-// uint8_t led_rows_3 = (0b000);
-uint8_t led_rows_start = (0b100);
+// // int bits [21] = {4,2,1};
+// uint32_t leds18_and_rows = (0b000111111111111111111);
+// uint32_t leds18_start = (0b000100000000000000000);
+// // uint8_t led_rows_3 = (0b000);
+// uint8_t led_rows_start = (0b100);
 
 void setup()
 {
@@ -45,12 +45,20 @@ char c = 0b1000;
 int d = 0;
 bool dir = true;
 
-long leds[18];
+
+const int num_of_leds = 18;
+long leds[num_of_leds] = {};
 int leds_index = 0;
 
-long getLedActionBinary(char data[3])
+long getLedActionBinary(long data[4])
 {
-  
+  for(int k=0; k<3; k++){
+    Serial.print(data[k]);
+    Serial.print(" ( ");
+    Serial.print(data[k]-'0');
+    Serial.print(" ) ");
+    Serial.print(" - ");
+  }
   // Serial.print(data[0]-'0');
   // Serial.print(data[1]-'0');
   // Serial.print(data[2]-'0');
@@ -63,7 +71,7 @@ long getLedActionBinary(char data[3])
       n = n | 1;
   }
 
-  for (int i = 0; i < 18; i++)
+  for (int i = 0; i < num_of_leds; i++)
   {
     n <<= 1;
     int index = ((data[0] * 3) + data[2]);
@@ -75,28 +83,25 @@ long getLedActionBinary(char data[3])
   return n;
 }
 
-void updateLEDstate(String actions)
+char comma = ',';
+char colon = ':';
+
+void updateLEDstate(String action)
 {
-  char action[6];
-  actions.toCharArray(action, 6);// string convertion is not working
-  for(int k=0; k<6; k++){
-    Serial.print(action[k]);
-    Serial.print(" ( ");
-    Serial.print(action[k]-'0');
-    Serial.print(" ) ");
-    Serial.print(" - ");
-  }
-  char chosen_led_action[3];
+  if (action.length()>num_of_leds*4) return;
+
+  long chosen_led_action[4];
   int chosen_led_action_index = 0;
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < action.length(); i++)
   {
-    if (action[i] == *",")
+    if (action[i] == comma)
     {
-      chosen_led_action[chosen_led_action_index] = action[i - 1];
+      chosen_led_action[chosen_led_action_index] = action.substring(i - 1, i).toInt();
+      chosen_led_action_index++;
     }
-    else if (action[i] == *":")
+    else if (action[i] == colon)
     {
-      chosen_led_action[chosen_led_action_index] = action[i - 1];
+      chosen_led_action[chosen_led_action_index] = action.substring(i - 1, i).toInt();
       leds[leds_index] = getLedActionBinary(chosen_led_action);
       Serial.println(leds[leds_index], BIN);
       chosen_led_action_index = 0;
@@ -109,7 +114,7 @@ int coords[3] = {0, 0, 0};
 
 void loop()
 {
-  if (t % 500000 == 0)
+  if (t % 5000 == 0)
   {
     send_data((0b000111111111111111111));
     String action = wifiGet(host, port, "/tup");
@@ -122,9 +127,13 @@ void loop()
     //     Serial.println(": Found Comma");
     //   }
     // }
-    Serial.println(action);
-    Serial.println("\nMSG END __________");
+    leds_index = 0;
+    for (int i=0; i<num_of_leds; i++){
+      leds[i]=0b000111111111111111111;
+    }
     updateLEDstate(action);
+    // Serial.println(action);
+    // Serial.println("\nMSG END __________");
     // Serial.println(sizeof(leds18_and_rows));
     // c >>= 1;
     // Serial.println(c, BIN);
