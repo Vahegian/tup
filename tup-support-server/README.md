@@ -1,0 +1,1 @@
+For Rocket use ```rustup override set nightly```
