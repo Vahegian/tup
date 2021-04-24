@@ -5,3 +5,4 @@ tup-controller/.vscode
 tup-controller/src/private.h
 tup-support-server/target
 3d-Models/gcode
+tup-support-server/build
