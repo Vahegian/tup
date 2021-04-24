@@ -1,3 +1,20 @@
 {
-    "coin_tickers": "bitcoin,ethereum,binancecoin"
+    "monero": "0,0",
+    "litecoin": "0,1",
+    "bitcoin": "0,2",
+    "algorand": "1,0",
+    "chainlink": "1,1",
+    "ethereum": "1,2",
+    "elrond-erd-2": "2,0",
+    "theta-token": "2,1",
+    "binancecoin": "2,2",
+    "singularitynet": "3,0",
+    "vechain": "3,1",
+    "cardano": "3,2",
+    "theta-fuel": "4,0",
+    "filecoin": "4,1",
+    "polkadot": "4,2",
+    "dogecoin": "5,0",
+    "cosmos": "5,1",
+    "uniswap": "5,2"
 }
