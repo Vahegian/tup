@@ -58,6 +58,6 @@ pub async fn coin_update_loop(
     loop {
         let coin_data = get_one_day_changes(&client, &coin_string).await;
         update_tup_state(selected_coins, coin_data, &counter);
-        thread::sleep(Duration::from_secs(65));
+        thread::sleep(Duration::from_secs(60*5));
     }
 }

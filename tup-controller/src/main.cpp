@@ -13,12 +13,12 @@ char comma = ',';
 char colon = ':';
 
 long load_anim[] = {
-  0b010111111111111111100,
-  0b010111111111111100100,
-  0b010111111111100100100,
-  0b010111111100100100100,
-  0b010111100100100100100,
-  0b010100100100100100100
+  0b010100100100100100101,
+  0b010100100100100101101,
+  0b010100100100101101101,
+  0b010100100101101101101,
+  0b010100101101101101101,
+  0b010101101101101101101
 };
 
 void setup()
@@ -82,7 +82,7 @@ void updateLEDstate(String action)
     {
       chosen_led_action[chosen_led_action_index] = action.substring(i - 1, i).toInt();
       leds[leds_index] = getLedActionBinary(chosen_led_action);
-      Serial.println(leds[leds_index], BIN);
+      // Serial.println(leds[leds_index], BIN);
       chosen_led_action_index = 0;
       leds_index++;
     }
@@ -95,7 +95,7 @@ void loop()
   {
     for (int a=0; a<5; a++){
       send_data(load_anim[a]);
-      delay(60);
+      delay(500-(a*100));
     }
     String action = wifiGet(host, port, "/tup");
     send_data(load_anim[5]);
