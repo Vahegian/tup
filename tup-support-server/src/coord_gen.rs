@@ -4,16 +4,20 @@ use std::{
     thread,
     time::Duration,
 };
+use chrono::Utc;
+use reqwest::Error;
 
-async fn get_one_day_changes(client: &reqwest::Client, coin_string: &String) -> serde_json::Value {
+async fn get_one_day_changes(coin_string: &String) -> Result<serde_json::Value, Error> {
+    let client = reqwest::Client::builder()
+        .build()
+        .expect("Error creating a client");
+
     let res = client
             .get(format!("https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies=usd&include_24hr_change=true", coin_string))
             .send()
-            .await.expect("Error getting coingecko response");
+            .await?;
 
-    res.json::<serde_json::Value>()
-        .await
-        .expect("Error Deserializing coingecko response")
+    res.json::<serde_json::Value>().await
 }
 
 fn update_tup_state(
@@ -23,17 +27,24 @@ fn update_tup_state(
 ) {
     let mut coords = String::from("");
     for key in selected_coins.keys() {
-        let one_day_change = coin_data[key]["usd_24h_change"]
-            .as_f64()
-            .expect("Error in Coingecko response");
         let mut coord = selected_coins[key].clone();
-        if one_day_change < 0.0 {
-            coord = format!("{},{}", coord, 0);
-        } else {
-            coord = format!("{},{}", coord, 1);
-        }
+        if coin_data[key]["usd_24h_change"].is_f64() {
+            let one_day_change = match coin_data[key]["usd_24h_change"]
+                .as_f64(){
+                    Some(val) => val,
+                    None => 0.0
+                };
+                
+            if one_day_change < 0.0 {
+                coord = format!("{},{}", coord, 0);
+            } else if one_day_change > 0.0{
+                coord = format!("{},{}", coord, 1);
+            } else {
+                coord = format!("{},{}", coord, 2);
+            }
 
-        coords = format!("{}{}:", coords, coord);
+            coords = format!("{}{}:", coords, coord);
+        }
     }
     let mut data = counter.lock().unwrap();
     *data = coords;
@@ -51,13 +62,14 @@ pub async fn coin_update_loop(
         }
         coin_string = format!("{},{}", coin_string, key);
     }
-
-    let client = reqwest::Client::builder()
-        .build()
-        .expect("Error creating a client");
     loop {
-        let coin_data = get_one_day_changes(&client, &coin_string).await;
+        let coin_data = get_one_day_changes(&coin_string).await;
+        let coin_data = match coin_data {
+            Ok(val) => val,
+            Err(_e) => continue,
+        };
         update_tup_state(selected_coins, coin_data, &counter);
-        thread::sleep(Duration::from_secs(60*5));
+        println!("Updated prices {}", Utc::now());
+        thread::sleep(Duration::from_secs(60 * 5));
     }
 }
