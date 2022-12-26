@@ -7,7 +7,7 @@ RUN cd /build && apt-get update && apt-get upgrade -y && ls && cargo build --rel
 
 
 FROM debian:buster
-RUN apt-get update && apt-get upgrade -y && apt install -y ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt install -y ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
  
 COPY --from=0 /build/target/release/tup-support-server /tup/
 COPY Rocket.toml /tup/

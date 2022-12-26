@@ -1,11 +1,7 @@
-[development]
+[debug]
 address = "0.0.0.0"
-port = 5000
+port = 5666
 
-[staging]
+[release]
 address = "0.0.0.0"
-port = 5000
-
-[production]
-address = "0.0.0.0"
-port = 5000
+port = 5666

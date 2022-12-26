@@ -94,7 +94,7 @@ unsigned int t = 0;
 
 void loop()
 {
-  if (t % 10 == 0)
+  if (t == 20 )
   {
     // for (int a=0; a<5; a++){
     //   send_data(load_anim[a]);
@@ -117,8 +117,8 @@ void loop()
     t = 0;
   }
 
-  delay(1);
   t++;
+  delay(1000);
 }
 
 

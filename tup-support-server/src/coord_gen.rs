@@ -1,11 +1,14 @@
+use reqwest::Error;
+use rocket::{
+    fairing::{Fairing, Info, Kind},
+    tokio, Orbit, Rocket,
+};
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
     thread,
     time::Duration,
 };
-use reqwest::Error;
-use rocket::{fairing::{Fairing, Kind, Info}, Rocket, Orbit};
 
 async fn get_one_day_changes(coin_string: &String) -> Result<serde_json::Value, Error> {
     let client = reqwest::Client::builder()
@@ -29,15 +32,14 @@ fn update_tup_state(
     for key in selected_coins.keys() {
         let mut coord = selected_coins[key].clone();
         if coin_data[key]["usd_24h_change"].is_f64() {
-            let one_day_change = match coin_data[key]["usd_24h_change"]
-                .as_f64(){
-                    Some(val) => val,
-                    None => 0.0
-                };
-                
+            let one_day_change = match coin_data[key]["usd_24h_change"].as_f64() {
+                Some(val) => val,
+                None => 0.0,
+            };
+
             if one_day_change < 0.0 {
                 coord = format!("{},{}", coord, 0);
-            } else if one_day_change > 0.0{
+            } else if one_day_change > 0.0 {
                 coord = format!("{},{}", coord, 1);
             } else {
                 coord = format!("{},{}", coord, 2);
@@ -68,11 +70,11 @@ pub async fn coin_update_loop(
             Ok(val) => val,
             Err(e) => {
                 println!("{e}");
-                continue
+                continue;
             }
         };
         update_tup_state(selected_coins, coin_data, &counter);
-        // println!("Updated prices {}", Utc::now());
+        // println!("Updated prices {}", coin_string);
         thread::sleep(Duration::from_secs(60 * 5));
     }
 }
@@ -92,7 +94,7 @@ impl Fairing for CoordGen {
     async fn on_liftoff(&self, rocket: &Rocket<Orbit>) {
         // let shutdown = rocket.shutdown();
         let providers = rocket.state::<crate::TupStateString>().unwrap().clone();
-        coin_update_loop(&providers.coins, providers.coords.clone()).await
-
+        let (coins, coords) = (providers.coins.clone(), providers.coords.clone());
+        tokio::spawn(async move { coin_update_loop(&coins, coords).await });
     }
 }
