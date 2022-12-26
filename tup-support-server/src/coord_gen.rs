@@ -4,8 +4,8 @@ use std::{
     thread,
     time::Duration,
 };
-use chrono::Utc;
 use reqwest::Error;
+use rocket::{fairing::{Fairing, Kind, Info}, Rocket, Orbit};
 
 async fn get_one_day_changes(coin_string: &String) -> Result<serde_json::Value, Error> {
     let client = reqwest::Client::builder()
@@ -66,10 +66,33 @@ pub async fn coin_update_loop(
         let coin_data = get_one_day_changes(&coin_string).await;
         let coin_data = match coin_data {
             Ok(val) => val,
-            Err(_e) => continue,
+            Err(e) => {
+                println!("{e}");
+                continue
+            }
         };
         update_tup_state(selected_coins, coin_data, &counter);
-        println!("Updated prices {}", Utc::now());
+        // println!("Updated prices {}", Utc::now());
         thread::sleep(Duration::from_secs(60 * 5));
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CoordGen;
+
+#[rocket::async_trait]
+impl Fairing for CoordGen {
+    fn info(&self) -> Info {
+        Info {
+            name: "Get token coords",
+            kind: Kind::Liftoff,
+        }
+    }
+
+    async fn on_liftoff(&self, rocket: &Rocket<Orbit>) {
+        // let shutdown = rocket.shutdown();
+        let providers = rocket.state::<crate::TupStateString>().unwrap().clone();
+        coin_update_loop(&providers.coins, providers.coords.clone()).await
+
     }
 }

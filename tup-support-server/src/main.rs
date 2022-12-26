@@ -1,12 +1,9 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
-#[macro_use]
-extern crate rocket;
+#[macro_use] extern crate rocket;
 
 use rocket::State;
 use std::{
     env,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex}, collections::HashMap,
 };
 
 mod coord_gen;
@@ -15,16 +12,17 @@ mod json_parser;
 #[derive(Debug)]
 struct TupStateString {
     pub coords: Arc<Mutex<String>>,
+    pub coins: HashMap<String, String>
 }
 
 #[get("/tup")]
-fn index(coords: State<TupStateString>) -> String {
+fn index(coords: &State<TupStateString>) -> String {
     let counter = Arc::clone(&coords.coords);
     let data = counter.lock().unwrap();
     data.clone()
 }
 
-#[tokio::main]
+#[rocket::main]
 async fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len().ne(&2) {
@@ -36,15 +34,12 @@ async fn main() {
 
     let state = TupStateString {
         coords: Arc::new(Mutex::new(String::from(""))),
+        coins
     };
-    let counter = Arc::clone(&state.coords);
-    tokio::spawn(async move {
-        // println!("{:?}", counter.lock().unwrap());
-        coord_gen::coin_update_loop(&coins, counter).await;
-    });
 
-    rocket::ignite()
+    let _ = rocket::build()
         .manage(state)
         .mount("/", routes![index])
-        .launch();
+        .attach(coord_gen::CoordGen)
+        .launch().await;
 }

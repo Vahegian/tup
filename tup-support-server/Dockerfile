@@ -1,9 +1,18 @@
-FROM ubuntu:20.04
+FROM rust:1.66.0-buster
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y curl && curl https://sh.rustup.rs -sSf 
+COPY ./src /build/src
+COPY ./Cargo.toml /build
 
-COPY ./* ./tup/
+RUN cd /build && apt-get update && apt-get upgrade -y && ls && cargo build --release
 
-WORKDIR /tup
 
-CMD ./tup-support-server ./config.json
+FROM debian:buster
+RUN apt-get update && apt-get upgrade -y && apt install -y ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
+ 
+COPY --from=0 /build/target/release/tup-support-server /tup/
+COPY Rocket.toml /tup/
+COPY config.json /tup/
+
+# WORKDIR /tup
+
+CMD cd /tup && ./tup-support-server ./config.json

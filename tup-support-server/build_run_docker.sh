@@ -1,2 +1,3 @@
-docker build -t tup . &&
-docker run -d --net=host --name tup_container tup
+docker build -t tup . && \
+docker rm -f tup_container && \
+docker run -d -p 5666:5000 --name tup_container tup

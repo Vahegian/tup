@@ -3,8 +3,6 @@
 #include "private.h"
 #include "reg/reg.h"
 
-long t = 0;
-
 const int num_of_leds = 18;
 
 long leds[num_of_leds] = {};
@@ -21,31 +19,10 @@ long load_anim[] = {
   0b010101101101101101101
 };
 
-void setup()
-{
-
-  Serial.begin(9600);
-
-  delay(500);
-
-  pinMode(LATCH_PIN, OUTPUT);
-  pinMode(DATA_PIN, OUTPUT);
-  pinMode(CLOCK_PIN, OUTPUT);
-  digitalWrite(LATCH_PIN, LOW);
-  digitalWrite(CLOCK_PIN, LOW);
-  digitalWrite(DATA_PIN, LOW);
-  send_data((0b111000000000000000000));
-  if (!wifiSetup(ssid, password))
-  {
-    exit(1);
-  }
-  send_data((0b000111111111111111111));
-}
-
 long getLedActionBinary(long data[4])
 {
   long n = 0;
-  for (int r = 0; r < 3; r++) //preparing the row flip the cooresponding bit to 1 if the row is selected
+  for (int r = 0; r < 3; r++) //preparing the row flip the corresponding bit to 1 if the row is selected
   {
     n <<= 1;
     if (r - data[1] == 0)
@@ -62,6 +39,29 @@ long getLedActionBinary(long data[4])
   }
 
   return n;
+}
+
+void playLoadingAnimation(int t_ms_delay, int pwm_delay_micro_s){
+  long leds_anim = 0b000000000000000000000;
+    for (int y=0; y>=0; y--){
+      for (int x=0; x<6; x++){
+        for (int c=0; c<3; c++){
+          long rgb[] = {x,y,c};
+          leds_anim |= 0b111101101101101101101;
+          leds_anim ^= getLedActionBinary(rgb);
+          
+          if (y==2)leds_anim |= 0b001000000000000000000;
+          else if (y==1)leds_anim |= 0b010000000000000000000;
+          else if (y==0)leds_anim |= 0b100000000000000000000;
+          
+          for (int d=0; d<(t_ms_delay*1000)/pwm_delay_micro_s; d++){ //150 ms delay
+            send_data(leds_anim);
+            send_data(0b000111111111111111111);
+            delayMicroseconds(pwm_delay_micro_s);
+          }
+        }
+      }
+    }
 }
 
 void updateLEDstate(String action)
@@ -89,32 +89,12 @@ void updateLEDstate(String action)
   }
 }
 
-void playLoadingAnimation(int t_ms_delay, int pwm_delay_micro_s){
-  long leds_anim = 0b000000000000000000000;
-    for (int y=0; y>=0; y--){
-      for (int x=0; x<6; x++){
-        for (int c=0; c<3; c++){
-          long rgb[] = {x,y,c};
-          leds_anim |= 0b111101101101101101101;
-          leds_anim ^= getLedActionBinary(rgb);
-          
-          if (y==2)leds_anim |= 0b001000000000000000000;
-          else if (y==1)leds_anim |= 0b010000000000000000000;
-          else if (y==0)leds_anim |= 0b100000000000000000000;
-          
-          for (int d=0; d<(t_ms_delay*1000)/pwm_delay_micro_s; d++){ //150 ms delay
-            send_data(leds_anim);
-            send_data(0b000111111111111111111);
-            delayMicroseconds(pwm_delay_micro_s);
-          }
-        }
-      }
-    }
-}
+
+unsigned int t = 0;
 
 void loop()
 {
-  if (t % 70000 == 0)
+  if (t % 10 == 0)
   {
     // for (int a=0; a<5; a++){
     //   send_data(load_anim[a]);
@@ -128,13 +108,40 @@ void loop()
     }
     updateLEDstate(action);
 
+    for (int n = 0; n < 18; n++)
+    {
+      send_data(leds[n]);
+      delayMicroseconds(5);
+    }
+    
     t = 0;
   }
 
-  for (int n = 0; n < 18; n++)
-  {
-    send_data(leds[n]);
-    delayMicroseconds(5);
-  }
+  delay(1);
   t++;
+}
+
+
+void setup()
+{
+
+  Serial.begin(9600);
+
+  delay(500);
+
+  pinMode(LATCH_PIN, OUTPUT);
+  pinMode(DATA_PIN, OUTPUT);
+  pinMode(CLOCK_PIN, OUTPUT);
+  digitalWrite(LATCH_PIN, LOW);
+  digitalWrite(CLOCK_PIN, LOW);
+  digitalWrite(DATA_PIN, LOW);
+  // playLoadingAnimation(200, 300);
+  send_data((0b001000101000000000000));
+  if (!wifiSetup(ssid, password))
+  {
+    exit(1);
+  }
+  send_data((0b100011101101101101011));
+  delay(5000);
+  send_data((0b000111111111111111111));
 }
