@@ -14,9 +14,6 @@ SemaphoreHandle_t xledRowMutex;
 
 long screen[6][3];
 
-char comma = ',';
-char colon = ':';
-
 void printBits(long num)
 {
   for (int bit = 0; bit < (sizeof(num) * 8); bit++)
@@ -69,17 +66,21 @@ void updateLEDstate(String action)
   int perLed[3] = {0, 0, 0};
   int p = 0;
   // Serial.println(action);
-  for (int i = 0; i < action.length(); i++)
+  for (int i = 1; i < action.length(); i++)
   {
-    if (action[i] != comma)
+    String ch = String(action[i]); // i=0 is an unknown char
+    if (!ch.equals(",") && !ch.equals(":") && !ch.equals("") && !ch.equals(" "))
     {
-      perLed[p] = String(action[i]).toInt();
+      // // logs
+      // Serial.print(ch);
+      // Serial.print(" | ");
+      perLed[p] = ch.toInt();
       p++;
     }
 
-    if (action[i] == colon)
+    if (ch.equals(":"))
     {
-
+      
       p = 0;
       if (perLed[2] == 1)
       {
@@ -89,12 +90,23 @@ void updateLEDstate(String action)
       {
         setLED(perLed[0], perLed[1], 1, 0, 0);
       }
+
+      // // logs
+      // Serial.print(perLed[0]);
+      // Serial.print(" : ");
+      // Serial.print(perLed[1]);
+      // Serial.print(" : ");
+      // Serial.print(perLed[2]);
+      // Serial.print(" - ");
+      // printBits(screen[perLed[0]][perLed[1]]);
+      
       perLed[0] = 0;
       perLed[1] = 0;
       perLed[2] = 0;
     }
     delay(10);
   }
+  // Serial.println("--------------------");
 }
 
 unsigned int t = 0;
@@ -105,8 +117,8 @@ void loop()
   {
     for (int y = 0; y < 3; y++)
     {
-      setLED(x, y, 0, 0, 1);
-      delay(30);
+      setLED(x, y, 0, 1, 1);
+      delay(50);
     }
   }
 
@@ -155,22 +167,27 @@ void setup()
   // send_data((0b001011101101101101011));
   xTaskCreate(refreshLEDs, "refresh", 10000, NULL, 1, NULL);
 
-  setLED(0, 0, 1, 0, 0);
-  setLED(5, 0, 1, 0, 0);
-  setLED(0, 2, 1, 0, 0);
-  setLED(5, 2, 1, 0, 0);
-  if (!wifiSetup(ssid, password))
-  {
-    exit(1);
-  }
-  // send_data((0b100011101101101101011));
   setLED(0, 0, 0, 0, 1);
   setLED(5, 0, 0, 0, 1);
   setLED(0, 2, 0, 0, 1);
   setLED(5, 2, 0, 0, 1);
+  if (!wifiSetup(ssid, password))
+  {
+    setLED(0, 0, 1, 0, 0);
+    setLED(5, 0, 1, 0, 0);
+    setLED(0, 2, 1, 0, 0);
+    setLED(5, 2, 1, 0, 0);
+    delay(3000);
+    exit(1);
+  }
+  // send_data((0b100011101101101101011));
+  setLED(0, 0, 0, 1, 0);
+  setLED(5, 0, 0, 1, 0);
+  setLED(0, 2, 0, 1, 0);
+  setLED(5, 2, 0, 1, 0);
   // send_data((0b001100111111111111111));
              
-  delay(2000);
+  delay(1000);
   
   // send_data((0b000111111111111111111));
 }
