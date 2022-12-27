@@ -1,14 +1,10 @@
 use reqwest::Error;
 use rocket::{
     fairing::{Fairing, Info, Kind},
-    tokio, Orbit, Rocket,
+    tokio::{self, sync::Mutex},
+    Orbit, Rocket,
 };
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-    thread,
-    time::Duration,
-};
+use std::{collections::HashMap, sync::Arc};
 
 async fn get_one_day_changes(coin_string: &String) -> Result<serde_json::Value, Error> {
     let client = reqwest::Client::builder()
@@ -23,7 +19,7 @@ async fn get_one_day_changes(coin_string: &String) -> Result<serde_json::Value, 
     res.json::<serde_json::Value>().await
 }
 
-fn update_tup_state(
+async fn update_tup_state(
     selected_coins: &HashMap<String, String>,
     coin_data: serde_json::Value,
     counter: &Arc<Mutex<String>>,
@@ -48,8 +44,11 @@ fn update_tup_state(
             coords = format!("{}{}:", coords, coord);
         }
     }
-    let mut data = counter.lock().unwrap();
-    *data = coords;
+    {
+        let mut data = counter.lock().await;
+        *data = coords;
+    }
+    // println!("release")
 }
 
 pub async fn coin_update_loop(
@@ -69,13 +68,13 @@ pub async fn coin_update_loop(
         let coin_data = match coin_data {
             Ok(val) => val,
             Err(e) => {
-                println!("{e}");
+                error!("{e}");
                 continue;
             }
         };
-        update_tup_state(selected_coins, coin_data, &counter);
+        update_tup_state(selected_coins, coin_data, &counter).await;
         // println!("Updated prices {}", coin_string);
-        thread::sleep(Duration::from_secs(60 * 5));
+        tokio::time::sleep(tokio::time::Duration::from_secs(60 * 5)).await;
     }
 }
 

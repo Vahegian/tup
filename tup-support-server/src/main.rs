@@ -1,12 +1,8 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::State;
-use std::{
-    collections::HashMap,
-    env,
-    sync::{Arc, Mutex},
-};
+use rocket::{tokio::sync::Mutex, State};
+use std::{collections::HashMap, env, sync::Arc};
 
 mod coord_gen;
 mod cors;
@@ -19,15 +15,15 @@ struct TupStateString {
 }
 
 #[get("/tup")]
-fn index(coords: &State<TupStateString>) -> String {
-    let counter = Arc::clone(&coords.coords);
-    let data = counter.lock().unwrap();
+async fn index(coords: &State<TupStateString>) -> String {
+    let counter = coords.coords.clone();
+    let data = counter.lock().await;
     data.clone()
 }
 
-#[get("/hi")]
-async fn hi() -> String {
-    "Hi back".to_owned()
+#[get("/ping")]
+async fn ping() -> &'static str {
+    "Alive"
 }
 
 #[rocket::main]
@@ -46,7 +42,7 @@ async fn main() {
     };
 
     let _ = rocket::build()
-        .mount("/", routes![index, hi])
+        .mount("/", routes![index, ping])
         .manage(state)
         .attach(coord_gen::CoordGen)
         .attach(cors::CORS)
