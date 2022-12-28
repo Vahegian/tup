@@ -84,10 +84,14 @@ void updateLEDstate(String action)
       p = 0;
       if (perLed[2] == 1)
       {
+        setLED(perLed[0], perLed[1], 0, 0, 1);
+        delay(100);
         setLED(perLed[0], perLed[1], 0, 1, 0);
       }
       else
       {
+        setLED(perLed[0], perLed[1], 0, 0, 1);
+        delay(100);
         setLED(perLed[0], perLed[1], 1, 0, 0);
       }
 
@@ -109,19 +113,22 @@ void updateLEDstate(String action)
   // Serial.println("--------------------");
 }
 
-unsigned int t = 0;
-
-void loop()
-{
+void highlight(unsigned int r=0,unsigned int g=0,unsigned int b=0){
   for (int x = 0; x < 6; x++)
   {
     for (int y = 0; y < 3; y++)
     {
-      setLED(x, y, 0, 1, 1);
-      delay(50);
+      setLED(x, y, r,g,b);
+      delay(80);
     }
   }
+}
 
+unsigned int t = 0;
+
+void loop()
+{
+  
   String action = wifiGet(host, port, "/tup");
   updateLEDstate(action);
 
@@ -167,24 +174,19 @@ void setup()
   // send_data((0b001011101101101101011));
   xTaskCreate(refreshLEDs, "refresh", 10000, NULL, 1, NULL);
 
-  setLED(0, 0, 0, 0, 1);
-  setLED(5, 0, 0, 0, 1);
-  setLED(0, 2, 0, 0, 1);
-  setLED(5, 2, 0, 0, 1);
+  highlight(0,0,1);
   if (!wifiSetup(ssid, password))
   {
-    setLED(0, 0, 1, 0, 0);
-    setLED(5, 0, 1, 0, 0);
-    setLED(0, 2, 1, 0, 0);
-    setLED(5, 2, 1, 0, 0);
+    highlight(1,0,0);
+    delay(100);
+    highlight(0,0,0);
+    delay(100);
+    highlight(1,0,0);
     delay(3000);
     exit(1);
   }
   // send_data((0b100011101101101101011));
-  setLED(0, 0, 0, 1, 0);
-  setLED(5, 0, 0, 1, 0);
-  setLED(0, 2, 0, 1, 0);
-  setLED(5, 2, 0, 1, 0);
+  highlight(0,1,0);
   // send_data((0b001100111111111111111));
              
   delay(1000);
