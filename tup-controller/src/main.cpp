@@ -84,14 +84,14 @@ void updateLEDstate(String action)
       p = 0;
       if (perLed[2] == 1)
       {
-        setLED(perLed[0], perLed[1], 0, 0, 1);
-        delay(100);
+        setLED(perLed[0], perLed[1], 1, 1, 0);
+        delay(150);
         setLED(perLed[0], perLed[1], 0, 1, 0);
       }
       else
       {
-        setLED(perLed[0], perLed[1], 0, 0, 1);
-        delay(100);
+        setLED(perLed[0], perLed[1], 1, 1, 0);
+        delay(150);
         setLED(perLed[0], perLed[1], 1, 0, 0);
       }
 
